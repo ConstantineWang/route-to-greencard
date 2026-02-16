@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>游戏说明 - 绿卡之路</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .tree { font-family: monospace; white-space: pre-wrap; line-height: 1.6; font-size: 0.85em; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; overflow-x: auto; }
+    .section { margin-bottom: 20px; }
+    .section h3 { color: #ffd700; margin-bottom: 10px; }
+    .back-btn { display: inline-block; margin-bottom: 20px; padding: 10px 20px; background: rgba(255,255,255,0.2); color: #fff; text-decoration: none; border-radius: 8px; }
+    .back-btn:hover { background: rgba(255,255,255,0.3); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="./" class="back-btn">← 返回游戏</a>
+    <h1>📖 游戏说明</h1>
+    <p class="subtitle">绿卡之路 - 完整逻辑树</p>
+
+    <div class="card section">
+      <h3>📋 角色创建</h3>
+      <div class="tree">🎂 年龄 (默认22岁)
+💰 家庭资产
+├── 富哥富姐 (>5000万) → 解锁EB-5逃生路线
+└── 普通家庭
+📚 做题家能力 (影响找工作/60天找工)
+├── 🏆 卷王: Ivy/Top10 托福115+ GPA3.9+ FAANG实习 → 3骰取最大
+├── 💪 强: Top30 托福105+ GPA3.5+ 有实习 → 2骰取最大
+├── 😐 一般: Top50 托福95+ GPA3.0+ → 1骰
+├── 😰 弱: Top100 托福刚过线 GPA一般 → 2骰取最小
+└── 🛋️ 摆王: 野鸡大学 躺平爱好者 → 3骰取最小
+💪 身心状态 (影响健康危机检定)
+├── 🔩 身心钢铁: 健身狂+压力越大越兴奋 → 3骰取最大
+├── 💪 身心健康: 偶尔运动+扛得住压力 → 2骰取最大
+├── 😐 普通: 久坐不动+正常心态 → 1骰
+├── 😰 亚健康: 熬夜+容易焦虑 → 2骰取最小
+└── 💔 身心俱疲: 体弱多病+玻璃心 → 3骰取最小
+🔓 开挂模式 (可选，全部通过)</div>
+    </div>
+
+    <div class="card section">
+      <h3>🎯 主线流程</h3>
+      <div class="tree">骰子0-9，数字越大越好
+
+① 🎓 找工作 [≥4成功，能力检定] +1年
+   ├── ✅ 成功 → H1B抽签
+   └── ❌ 失败 → 💀 OPT到期 (可选EB-5)
+
+② 🎰 H-1B抽签 (最多3次)
+   ├── H1B① [≥7成功] +1年 → 中签则跳到审批
+   ├── H1B② [≥7成功] +1年 → 中签则跳到审批
+   └── H1B③ [≥7成功] +1年 → 没中 → 💀 三年未中签
+
+③ 📋 H-1B审批 [≥1成功] +0年
+   └── ❌ 被拒 → 💀 H1B被拒
+
+④ 📝 PERM [≥2成功] +1年
+   └── ❌ 被拒 → 💀 PERM失败
+
+⑤ 📄 I-140 [≥1成功] +1年
+   ├── ✅ 批准 → 进入6年排期等待
+   └── ❌ 被拒 → 💀 I-140被拒
+
+⑥ ⏳ 排期等待 (6年，每年随机事件)
+
+⑦ 🏠 I-485 [≥1成功] +1年
+   ├── ✅ 批准 → 🗽 绿卡成功！
+   └── ❌ 被拒 → 💀 功亏一篑</div>
+    </div>
+
+    <div class="card section">
+      <h3>🎲 排期期间随机事件</h3>
+      <div class="tree">每年随机触发一个事件:
+
+67% ☀️ 平安年 → 自动通过，不扔骰子
+15% 💼 裁员 [≥1成功]
+    └── ❌ 被裁 → 🏃 60天找工作 [≥7成功，做题家能力检定]
+        └── ❌ 没找到 → 💀 身份失效
+10% 👨‍👩‍👧 家庭变故 [≥2成功]
+    └── ❌ 必须回国 → 💀 家庭变故结局
+ 8% 🏥 健康危机 [≥2成功，身心状态检定]
+    └── ❌ 崩溃 → 💀 身心崩溃结局</div>
+    </div>
+
+    <div class="card section">
+      <h3>💰 EB-5 逃生路线</h3>
+      <div class="tree">仅限富哥富姐 (家庭资产>5000万)
+
+触发条件: 任何主线阶段失败时可选
+💰 EB-5投资移民 [≥1成功] +2年
+├── ✅ 批准 → 🏆 氪金通关！
+└── ❌ 失败 → 💸 EB-5失败，钱打水漂
+
+注意: 随机事件失败不触发EB-5选项</div>
+    </div>
+
+    <div class="card section">
+      <h3>💀 所有结局</h3>
+      <div class="tree">🗽 美国梦实现        🏆 氪金通关
+📚 OPT到期          🎲 三年未中签
+📋 H1B被拒          💼 PERM失败
+📄 I-140被拒        🏠 I-485被拒
+📦 60天未找到工作    👨‍👩‍👧 家庭变故
+🏥 身心崩溃          💸 EB-5失败</div>
+    </div>
+
+    <div class="card section">
+      <h3>🎂 年龄评价</h3>
+      <div class="tree">&lt; 30岁: 🌟 "青春还在，未来可期！"
+30-34岁: (无评价)
+≥ 35岁: 😮‍💨 "最好的年华都献给了绿卡，值得吗？"</div>
+    </div>
+
+    <div class="card section">
+      <h3>📊 时间线参考</h3>
+      <div class="tree">最优路径 (全部一次过):
+找工作(1) → H1B①(1) → 审批 → PERM(1) → I-140(1) → 排期(6) → I-485(1)
+总计: 11年 | 22岁开始 → 33岁拿卡
+
+最长路径 (H1B抽3年):
+找工作(1) → H1B①②③(3) → 审批 → PERM(1) → I-140(1) → 排期(6) → I-485(1)
+总计: 13年 | 22岁开始 → 35岁拿卡</div>
+    </div>
+
+    <a href="./" class="back-btn">← 返回游戏</a>
+  </div>
+</body>
+</html>

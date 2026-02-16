@@ -1,4 +1,4 @@
-import { ABILITY_LEVELS, WEALTH_LEVELS, AGE_COMMENTS } from '../data/endings.js';
+import { ABILITY_LEVELS, WEALTH_LEVELS, AGE_COMMENTS, MENTAL_LEVELS } from '../data/endings.js';
 
 export class UI {
   constructor(game, el) { this.game = game; this.el = el; this.rolling = false; }
@@ -12,7 +12,7 @@ export class UI {
 
   renderSetup() {
     this.el.innerHTML = `
-      <div class="card"><div class="stage-title">👤 创建角色</div></div>
+      <div class="card"><div class="stage-title">👤 初始角色属性 <small>（影响结局）</small></div></div>
       <div class="card">
         <h3>🎂 毕业年龄</h3>
         <div class="age-input">
@@ -23,27 +23,39 @@ export class UI {
       <div class="card">
         <h3>💰 家庭资产</h3>
         <div class="opts">${Object.entries(WEALTH_LEVELS).map(([k,v])=>`
-          <label class="opt"><input type="radio" name="w" value="${k}"><span>${v.name}</span>${v.canEB5?'<small class="gold">解锁EB-5</small>':''}</label>
+          <label class="opt"><input type="radio" name="w" value="${k}"><span>${v.name}</span>${v.canEB5?'':''}</label>
         `).join('')}</div>
       </div>
       <div class="card">
-        <h3>📚 做题家能力</h3><p class="hint">影响找工作，请诚实评估</p>
+        <h3>📚 做题家能力</h3>
         <div class="opts">${Object.entries(ABILITY_LEVELS).map(([k,v])=>`
           <label class="opt"><input type="radio" name="a" value="${k}"><span>${v.name}</span><small>${v.desc}</small>${v.warn?`<small class="warn">${v.warn}</small>`:''}</label>
         `).join('')}</div>
       </div>
-      <button class="btn btn-roll" id="start" disabled>🚀 开始</button>`;
+      <div class="card">
+        <h3>💪 身心状态</h3>
+        <div class="opts">${Object.entries(MENTAL_LEVELS).map(([k,v])=>`
+          <label class="opt"><input type="radio" name="m" value="${k}"><span>${v.name}</span><small>${v.desc}</small></label>
+        `).join('')}</div>
+      </div>
+      <button class="btn btn-roll" id="start" disabled>🚀 开始</button>
+      <label class="opt" style="margin-top:10px;justify-content:center"><input type="checkbox" id="cheat"><span>🔓 开挂人生（全部通过）</span></label>`;
     const btn = this.el.querySelector('#start');
     const check = () => {
-      btn.disabled = !this.el.querySelector('input[name="w"]:checked') || !this.el.querySelector('input[name="a"]:checked');
+      btn.disabled = !this.el.querySelector('input[name="w"]:checked') || 
+                     !this.el.querySelector('input[name="a"]:checked') ||
+                     !this.el.querySelector('input[name="m"]:checked');
     };
     this.el.querySelectorAll('input[type="radio"]').forEach(r => r.onchange = check);
     btn.onclick = () => {
       const age = parseInt(this.el.querySelector('#age').value) || 22;
+      const cheat = this.el.querySelector('#cheat').checked;
       this.game.setCharacter(
         this.el.querySelector('input[name="w"]:checked').value,
         this.el.querySelector('input[name="a"]:checked').value,
-        age
+        age,
+        cheat,
+        this.el.querySelector('input[name="m"]:checked').value
       );
       this.render();
     };
@@ -52,7 +64,8 @@ export class UI {
   renderEnd() {
     const { state } = this.game;
     const e = this.game.getEnding(state.endingType);
-    const finalAge = state.character.age + e.years;
+    const finalAge = this.game.currentAge;
+    const yearsSpent = state.character.yearsSpent;
     let ageComment = '';
     if (finalAge < 30) {
       ageComment = AGE_COMMENTS.young.replace('${age}', finalAge);
@@ -74,7 +87,7 @@ export class UI {
         <div class="big">${e.emoji}</div>
         <h2>${e.title}</h2>
         <p>${e.desc}</p>
-        <p class="gold">📅 ~${e.years}年 | 🎂 ${state.character.age}岁 → ${finalAge}岁</p>
+        <p class="gold">📅 ${yearsSpent}年 | 🎂 ${state.character.age}岁 → ${finalAge}岁</p>
         ${ageComment ? `<p style="margin-top:15px;color:${finalAge<30?'#4caf50':'#f5576c'}">${ageComment}</p>` : ''}
         <button class="btn btn-restart" id="re">🔄 再来</button>
       </div>`;
@@ -85,9 +98,25 @@ export class UI {
     const { state } = this.game;
     const s = this.game.currentStage;
     const ab = this.game.getAbility();
-    const dc = s.useAbility ? ab.diceCount : 1;
-    const threshold = Math.floor(s.baseOdds * 10);
-    const info = s.useAbility ? `${dc}骰取${ab.pickBest?'最小':'最大'} (<${threshold}成功)` : `<${threshold}成功`;
+    const mental = this.game.getMental();
+    
+    let dc, pickBest, attrName;
+    if (s.useAbility) {
+      dc = ab.diceCount;
+      pickBest = ab.pickBest;
+      attrName = ab.name;
+    } else if (s.useMental) {
+      dc = mental.diceCount;
+      pickBest = mental.pickBest;
+      attrName = mental.name;
+    } else {
+      dc = 1;
+      pickBest = true;
+      attrName = null;
+    }
+    
+    const threshold = 10 - Math.floor(s.baseOdds * 10);
+    const info = attrName ? `≥${threshold} 成功，${dc}次取${pickBest?'最大':'最小'}（${attrName}）` : '';
 
     this.el.innerHTML = `
       ${state.history.length?`
@@ -104,14 +133,14 @@ export class UI {
       `:''}
       <div class="card">
         <div class="status">
-          <span>📍 ${state.isEB5?'EB-5':`${state.stageIndex+1}/${this.game.totalStages}`}</span>
-          <span>🎂 ${state.character.age}岁</span>
+          <span>📍 ${state.isEB5?'EB-5': state.inWaiting?`排期${state.waitingYear+1}/${state.waitingTotal}`: `${state.stageIndex+1}/${this.game.totalStages}`}</span>
+          <span>🎂 ${this.game.currentAge}岁</span>
           <span>${ABILITY_LEVELS[state.character.ability].name}</span>
         </div>
       </div>
       <div class="card">
         <div class="stage-title">${s.title}</div><p class="desc">${s.desc}</p>
-        <div class="odds">🎲 ${s.oddsText}<br><small class="gold">D10: ${info}</small></div>
+        <div class="odds">🎲 ${attrName ? info : `≥${threshold} 成功`}</div>
         <div class="dice-box">${this.renderDice(s, dc)}</div>
         ${this.renderActions(s)}
       </div>`;
@@ -120,12 +149,12 @@ export class UI {
 
   renderDice(s, dc) {
     const { state } = this.game;
-    const threshold = Math.floor(s.baseOdds * 10);
+    const threshold = 10 - Math.floor(s.baseOdds * 10);
     
     if (state.diceValues.length) {
       return state.diceValues.map((v, i) => {
         const isChosen = i === state.chosenIndex;
-        const isSuccess = v < threshold;
+        const isSuccess = v >= threshold;
         return `<span class="dice ${isSuccess?'ok':'fail'} ${isChosen?'chosen':''}">${v}</span>`;
       }).join('');
     }
@@ -136,13 +165,15 @@ export class UI {
     const { state } = this.game;
     if (state.showEB5 && !state.lastResult) return `<div class="result fail">${s.failMsg}</div><p class="gold">💰 要走EB-5吗？</p><button class="btn btn-eb5" id="eb5">💎 EB-5 (80万刀)</button><button class="btn btn-gray" id="next">😢 算了</button>`;
     if (state.lastResult !== undefined) return `<div class="result ${state.lastResult?'ok':'fail'}">${state.lastResult?s.successMsg:s.failMsg}</div><button class="btn btn-roll" id="next">${state.lastResult?'继续 →':'继续'}</button>`;
-    return `<button class="btn btn-roll" id="roll" ${this.rolling?'disabled':''}>🎲 掷骰子！</button>`;
+    if (state.inPeaceful) return `<button class="btn btn-roll" id="peaceful">😌 继续</button>`;
+    return `<button class="btn btn-roll" id="roll" ${this.rolling?'disabled':''}>🎲 进行随机判定！</button>`;
   }
 
   bindEvents() {
     this.el.querySelector('#roll')?.addEventListener('click', () => this.rollDice());
     this.el.querySelector('#next')?.addEventListener('click', () => { this.game.advance(); this.render(); });
     this.el.querySelector('#eb5')?.addEventListener('click', () => { this.game.chooseEB5(); this.render(); });
+    this.el.querySelector('#peaceful')?.addEventListener('click', () => { this.game.advancePeaceful(); this.render(); });
   }
 
   rollDice() {
@@ -151,6 +182,6 @@ export class UI {
     const iv = setInterval(() => {
       this.el.querySelectorAll('.dice').forEach(d => d.textContent = Math.floor(Math.random() * 10));
       if (++c > 15) { clearInterval(iv); this.rolling = false; this.game.roll(); this.render(); }
-    }, 80);
+    }, 20);
   }
 }

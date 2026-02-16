@@ -4,7 +4,7 @@ body { font-family: -apple-system, sans-serif; background: linear-gradient(135de
 h1 { text-align: center; margin-bottom: 8px; }
 .subtitle { text-align: center; color: #888; margin-bottom: 20px; font-size: 0.9em; }
 .card { background: rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; margin-bottom: 15px; }
-.stage-title { font-size: 1.3em; color: #ffd700; margin-bottom: 10px; }
+.stage-title { font-size: 1.6em; color: #ffd700; margin-bottom: 0px; }
 .desc { color: #ccc; margin-bottom: 15px; line-height: 1.5; }
 .odds { background: rgba(255,215,0,0.2); padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
 .status { display: flex; justify-content: space-between; font-size: 0.9em; }
