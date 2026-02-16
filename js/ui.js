@@ -16,8 +16,10 @@ export class UI {
       <div class="card">
         <h3>🎂 毕业年龄</h3>
         <div class="age-input">
-          <input type="number" id="age" min="20" max="35" value="22" style="width:80px;padding:12px;font-size:1.2em;border-radius:10px;text-align:center">
-          <span style="margin-left:12px;color:#aaa">岁 (硕士毕业)</span>
+          <button type="button" class="age-btn" id="age-down">−</button>
+          <input type="number" id="age" min="20" max="35" value="22" style="width:70px;padding:12px;font-size:1.2em;border-radius:10px;text-align:center">
+          <button type="button" class="age-btn" id="age-up">+</button>
+          <span style="margin-left:12px;color:#aaa">岁</span>
         </div>
       </div>
       <div class="card">
@@ -50,6 +52,9 @@ export class UI {
                      !this.el.querySelector('input[name="m"]:checked');
     };
     this.el.querySelectorAll('input[type="radio"]').forEach(r => r.onchange = check);
+    const ageInput = this.el.querySelector('#age');
+    this.el.querySelector('#age-down').onclick = () => { if (ageInput.value > 20) ageInput.value--; };
+    this.el.querySelector('#age-up').onclick = () => { if (ageInput.value < 35) ageInput.value++; };
     btn.onclick = () => {
       const age = parseInt(this.el.querySelector('#age').value) || 22;
       const cheat = this.el.querySelector('#cheat').checked;

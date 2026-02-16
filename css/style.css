@@ -57,7 +57,10 @@ h1 { text-align: center; margin-bottom: 8px; font-size: 1.8em; }
 .dot.fail { background: #f44336; box-shadow: 0 0 8px rgba(244,67,54,0.5); }
 .dot.now { background: #ffd700; animation: pulse 1.5s infinite; box-shadow: 0 0 12px rgba(255,215,0,0.6); }
 @keyframes pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.7; } }
-.age-input { display: flex; align-items: center; justify-content: center; margin: 10px 0; }
+.age-input { display: flex; align-items: center; justify-content: center; margin: 10px 0; gap: 8px; }
 .age-input input { background: rgba(0,0,0,0.3); color: #fff; border: 2px solid rgba(255,215,0,0.3); }
 .age-input input:focus { outline: none; border-color: #ffd700; }
+.age-btn { width: 44px; height: 44px; border: none; border-radius: 10px; background: rgba(255,215,0,0.2); color: #ffd700; font-size: 1.5em; cursor: pointer; transition: all 0.2s; }
+.age-btn:hover { background: rgba(255,215,0,0.4); }
+.age-btn:active { transform: scale(0.95); }
 .disclaimer { text-align: center; color: #555; font-size: 0.75em; margin-top: 25px; }
