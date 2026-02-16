@@ -153,7 +153,7 @@ export class UI {
               <span class="path-label">${h.short}</span>
             </div>
           `).join('')}
-          <div class="path-item now"><span class="dot now"></span><span class="path-label">${s.short}</span></div>
+          ${state.lastResult === undefined ? `<div class="path-item now"><span class="dot now"></span><span class="path-label">${s.short}</span></div>` : ''}
           </div>
         </div>
       `:''}
