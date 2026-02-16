@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎲 绿卡之路 - Immigration Simulator</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🎲 绿卡之路</h1>
+    <p class="subtitle">Route to Green Card - An Immigration Simulator Game</p>
+    <div id="game"></div>
+    <p class="disclaimer">⚠️ 仅供娱乐，非专业移民建议 | For entertainment only, not immigration advice</p>
+  </div>
+
+  <script type="module">
+    import { Game } from './js/game.js';
+    import { UI } from './js/ui.js';
+
+    const game = new Game();
+    const ui = new UI(game, document.getElementById('game'));
+    ui.render();
+  </script>
+</body>
+</html>
