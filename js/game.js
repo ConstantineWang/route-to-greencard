@@ -15,6 +15,27 @@ export class Game {
     };
   }
 
+  async submitResult() {
+    const { state } = this;
+    try {
+      await fetch('/api/results', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ending: state.endingType,
+          yearsSpent: state.character.yearsSpent,
+          startAge: state.character.age,
+          finalAge: this.currentAge,
+          ability: state.character.ability,
+          mental: state.character.mental,
+          wealth: state.character.wealth,
+          cheat: state.cheat,
+          path: state.history.map(h => h.short)
+        })
+      });
+    } catch (e) { console.log('Submit failed:', e); }
+  }
+
   setCharacter(wealth, ability, age, cheat = false, mental = 'normal') {
     this.state.character = { wealth, ability, age, yearsSpent: 0, mental };
     this.state.cheat = cheat;

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📊 统计数据 - 绿卡之路</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin: 20px 0; }
+    .stat-box { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; text-align: center; }
+    .stat-box .num { font-size: 2em; color: #ffd700; }
+    .stat-box .label { color: #aaa; font-size: 0.85em; margin-top: 5px; }
+    .ending-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .ending-row:last-child { border: none; }
+    .bar { height: 8px; background: rgba(255,215,0,0.3); border-radius: 4px; margin-top: 5px; }
+    .bar-fill { height: 100%; background: #ffd700; border-radius: 4px; transition: width 0.5s; }
+    .recent { font-size: 0.85em; color: #aaa; }
+    .recent .item { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .success { color: #4caf50; }
+    .fail { color: #f44336; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 全球统计</h1>
+    <p class="subtitle"><a href="./" style="color:#ffd700">← 返回游戏</a></p>
+    <div id="stats">加载中...</div>
+  </div>
+  <script type="module">
+    import { ENDINGS } from './data/endings.js';
+    
+    const el = document.getElementById('stats');
+    
+    async function load() {
+      try {
+        const res = await fetch('/api/results');
+        const data = await res.json();
+        
+        const successRate = data.total ? ((data.success / data.total) * 100).toFixed(1) : 0;
+        
+        el.innerHTML = `
+          <div class="stat-grid">
+            <div class="stat-box"><div class="num">${data.total}</div><div class="label">总游戏次数</div></div>
+            <div class="stat-box"><div class="num">${successRate}%</div><div class="label">上岸率</div></div>
+            <div class="stat-box"><div class="num">${data.avgYears}</div><div class="label">平均耗时(年)</div></div>
+            <div class="stat-box"><div class="num">${data.success}</div><div class="label">成功上岸</div></div>
+          </div>
+          
+          <div class="card">
+            <h3>📈 结局分布</h3>
+            ${Object.entries(data.endings).sort((a,b)=>b[1]-a[1]).map(([k,v]) => {
+              const e = ENDINGS[k] || { emoji: '❓', title: k };
+              const pct = ((v / data.total) * 100).toFixed(1);
+              return `<div class="ending-row">
+                <span>${e.emoji} ${e.title}</span>
+                <span>${v} (${pct}%)</span>
+              </div>
+              <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>`;
+            }).join('')}
+          </div>
+          
+          <div class="card">
+            <h3>🕐 最近记录</h3>
+            <div class="recent">
+              ${data.recent.map(r => {
+                const e = ENDINGS[r.ending] || { emoji: '❓', title: r.ending };
+                const isSuccess = r.ending === 'success' || r.ending === 'success_eb5';
+                return `<div class="item">
+                  <span class="${isSuccess ? 'success' : 'fail'}">${e.emoji} ${e.title}</span>
+                  <span style="float:right">${r.yearsSpent}年 | ${r.startAge}→${r.finalAge}岁</span>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      } catch (e) {
+        el.innerHTML = '<div class="card">暂无数据或加载失败</div>';
+      }
+    }
+    
+    load();
+  </script>
+</body>
+</html>

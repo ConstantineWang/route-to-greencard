@@ -12,34 +12,37 @@ export class UI {
 
   renderSetup() {
     this.el.innerHTML = `
-      <div class="card"><div class="stage-title">👤 初始角色属性 <small>（影响结局）</small></div></div>
+      <div class="card"><div class="stage-title">👤 创建你的角色</div><p class="desc">选择属性，开始你的绿卡之路</p></div>
       <div class="card">
         <h3>🎂 毕业年龄</h3>
         <div class="age-input">
-          <input type="number" id="age" min="20" max="35" value="22" style="width:80px;padding:10px;font-size:1.2em;border-radius:8px;border:none;text-align:center">
-          <span style="margin-left:10px;color:#aaa">岁 (硕士毕业)</span>
+          <input type="number" id="age" min="20" max="35" value="22" style="width:80px;padding:12px;font-size:1.2em;border-radius:10px;text-align:center">
+          <span style="margin-left:12px;color:#aaa">岁 (硕士毕业)</span>
         </div>
       </div>
       <div class="card">
         <h3>💰 家庭资产</h3>
+        <p class="desc" style="margin-bottom:10px;font-size:0.85em">富哥可选择EB-5投资移民</p>
         <div class="opts">${Object.entries(WEALTH_LEVELS).map(([k,v])=>`
-          <label class="opt"><input type="radio" name="w" value="${k}"><span>${v.name}</span>${v.canEB5?'':''}</label>
+          <label class="opt"><input type="radio" name="w" value="${k}"><span>${v.name}</span></label>
         `).join('')}</div>
       </div>
       <div class="card">
         <h3>📚 做题家能力</h3>
+        <p class="desc" style="margin-bottom:10px;font-size:0.85em">影响找工作的随机数判定方法</p>
         <div class="opts">${Object.entries(ABILITY_LEVELS).map(([k,v])=>`
-          <label class="opt"><input type="radio" name="a" value="${k}"><span>${v.name}</span><small>${v.desc}</small>${v.warn?`<small class="warn">${v.warn}</small>`:''}</label>
+          <label class="opt"><input type="radio" name="a" value="${k}"><span>${v.name}</span><small>${v.desc}</small></label>
         `).join('')}</div>
       </div>
       <div class="card">
         <h3>💪 身心状态</h3>
+        <p class="desc" style="margin-bottom:10px;font-size:0.85em">影响健康危机事件的随机数判定方法</p>
         <div class="opts">${Object.entries(MENTAL_LEVELS).map(([k,v])=>`
           <label class="opt"><input type="radio" name="m" value="${k}"><span>${v.name}</span><small>${v.desc}</small></label>
         `).join('')}</div>
       </div>
-      <button class="btn btn-roll" id="start" disabled>🚀 开始</button>
-      <label class="opt" style="margin-top:10px;justify-content:center"><input type="checkbox" id="cheat"><span>🔓 开挂人生（全部通过）</span></label>`;
+      <button class="btn btn-roll" id="start" disabled>🚀 开始移民之路</button>
+      <label class="opt" style="margin-top:12px;justify-content:center;background:rgba(255,215,0,0.1)"><input type="checkbox" id="cheat"><span>🔓 开挂模式</span><small style="margin-left:0">全部检定自动通过</small></label>`;
     const btn = this.el.querySelector('#start');
     const check = () => {
       btn.disabled = !this.el.querySelector('input[name="w"]:checked') || 
@@ -63,6 +66,7 @@ export class UI {
 
   renderEnd() {
     const { state } = this.game;
+    if (!state.submitted) { state.submitted = true; this.game.submitResult(); }
     const e = this.game.getEnding(state.endingType);
     const finalAge = this.game.currentAge;
     const yearsSpent = state.character.yearsSpent;
@@ -116,7 +120,10 @@ export class UI {
     }
     
     const threshold = 10 - Math.floor(s.baseOdds * 10);
-    const info = attrName ? `≥${threshold} 成功，${dc}次取${pickBest?'最大':'最小'}（${attrName}）` : '';
+    const successRate = Math.floor(s.baseOdds * 100);
+    const info = attrName 
+      ? ` ≥${threshold}成功 | ${dc}次随机取${pickBest?'最大':'最小'}，因为做题家属性是（${attrName}）` 
+      : `${successRate}%成功率 | 掷出≥${threshold}即可通过`;
 
     this.el.innerHTML = `
       ${state.history.length?`
@@ -140,7 +147,7 @@ export class UI {
       </div>
       <div class="card">
         <div class="stage-title">${s.title}</div><p class="desc">${s.desc}</p>
-        <div class="odds">🎲 ${attrName ? info : `≥${threshold} 成功`}</div>
+        <div class="odds">🎲 ${info}</div>
         <div class="dice-box">${this.renderDice(s, dc)}</div>
         ${this.renderActions(s)}
       </div>`;
@@ -163,10 +170,10 @@ export class UI {
 
   renderActions(s) {
     const { state } = this.game;
-    if (state.showEB5 && !state.lastResult) return `<div class="result fail">${s.failMsg}</div><p class="gold">💰 要走EB-5吗？</p><button class="btn btn-eb5" id="eb5">💎 EB-5 (80万刀)</button><button class="btn btn-gray" id="next">😢 算了</button>`;
-    if (state.lastResult !== undefined) return `<div class="result ${state.lastResult?'ok':'fail'}">${state.lastResult?s.successMsg:s.failMsg}</div><button class="btn btn-roll" id="next">${state.lastResult?'继续 →':'继续'}</button>`;
-    if (state.inPeaceful) return `<button class="btn btn-roll" id="peaceful">😌 继续</button>`;
-    return `<button class="btn btn-roll" id="roll" ${this.rolling?'disabled':''}>🎲 进行随机判定！</button>`;
+    if (state.showEB5 && !state.lastResult) return `<div class="result fail">${s.failMsg}</div><p class="gold" style="text-align:center;margin:15px 0">💰 家里有矿，要走EB-5吗？</p><button class="btn btn-eb5" id="eb5">💎 启动EB-5 (投资80万刀)</button><button class="btn btn-gray" id="next">😢 算了，认命</button>`;
+    if (state.lastResult !== undefined) return `<div class="result ${state.lastResult?'ok':'fail'}">${state.lastResult?s.successMsg:s.failMsg}</div><button class="btn btn-roll" id="next">${state.lastResult?'继续前进 →':'查看结果'}</button>`;
+    if (state.inPeaceful) return `<button class="btn btn-roll" id="peaceful">😌 平安度过，继续等待</button>`;
+    return `<button class="btn btn-roll" id="roll" ${this.rolling?'disabled':''}>🎲 掷骰子！</button>`;
   }
 
   bindEvents() {
