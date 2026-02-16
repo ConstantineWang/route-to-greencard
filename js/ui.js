@@ -1,4 +1,4 @@
-import { ABILITY_LEVELS, WEALTH_LEVELS, AGE_COMMENTS, MENTAL_LEVELS } from '../data/endings.js';
+import { ABILITY_LEVELS, WEALTH_LEVELS, AGE_COMMENTS, MENTAL_LEVELS, EDUCATION_LEVELS } from '../data/endings.js';
 
 export class UI {
   constructor(game, el) { this.game = game; this.el = el; this.rolling = false; }
@@ -13,6 +13,13 @@ export class UI {
   renderSetup() {
     this.el.innerHTML = `
       <div class="card"><div class="stage-title">👤 创建你的角色</div><p class="desc">选择属性，开始你的绿卡之路</p></div>
+      <div class="card">
+        <h3>🎓 学历</h3>
+        <p class="desc" style="margin-bottom:10px;font-size:0.85em">本科H-1B中签率较低，但失败后可读硕士</p>
+        <div class="opts">${Object.entries(EDUCATION_LEVELS).map(([k,v])=>`
+          <label class="opt"><input type="radio" name="e" value="${k}"><span>${v.name}</span></label>
+        `).join('')}</div>
+      </div>
       <div class="card">
         <h3>🎂 毕业年龄</h3>
         <div class="age-input">
@@ -44,10 +51,11 @@ export class UI {
         `).join('')}</div>
       </div>
       <button class="btn btn-roll" id="start" disabled>🚀 开始移民之路</button>
-      <label class="opt" style="margin-top:12px;justify-content:center;background:rgba(255,215,0,0.1)"><input type="checkbox" id="cheat"><span>🔓 开挂模式</span><small style="margin-left:0">全部检定自动通过</small></label>`;
+      <label class="opt" style="margin-top:12px;justify-content:center;background:rgba(255,215,0,0.1)"><input type="checkbox" id="cheat"><span>🔓 开挂模式 <small style="margin-left:0">全部检定自动通过</small></span></label>`;
     const btn = this.el.querySelector('#start');
     const check = () => {
-      btn.disabled = !this.el.querySelector('input[name="w"]:checked') || 
+      btn.disabled = !this.el.querySelector('input[name="e"]:checked') ||
+                     !this.el.querySelector('input[name="w"]:checked') || 
                      !this.el.querySelector('input[name="a"]:checked') ||
                      !this.el.querySelector('input[name="m"]:checked');
     };
@@ -63,7 +71,8 @@ export class UI {
         this.el.querySelector('input[name="a"]:checked').value,
         age,
         cheat,
-        this.el.querySelector('input[name="m"]:checked').value
+        this.el.querySelector('input[name="m"]:checked').value,
+        this.el.querySelector('input[name="e"]:checked').value
       );
       this.render();
     };
@@ -98,7 +107,7 @@ export class UI {
         <p>${e.desc}</p>
         <p class="gold">📅 ${yearsSpent}年 | 🎂 ${state.character.age}岁 → ${finalAge}岁</p>
         ${ageComment ? `<p style="margin-top:15px;color:${finalAge<30?'#4caf50':'#f5576c'}">${ageComment}</p>` : ''}
-        <button class="btn btn-restart" id="re">🔄 再来</button>
+        <button class="btn btn-restart" id="re">🔄 重生</button>
       </div>`;
     this.el.querySelector('#re').onclick = () => { this.game.reset(); this.render(); };
   }
@@ -124,8 +133,13 @@ export class UI {
       attrName = null;
     }
     
-    const threshold = 10 - Math.floor(s.baseOdds * 10);
-    const successRate = Math.floor(s.baseOdds * 100);
+    // H-1B 使用学历对应的概率
+    let baseOdds = s.baseOdds;
+    if (s.id.startsWith('h1b_lottery')) {
+      baseOdds = this.game.h1bOdds;
+    }
+    const threshold = 10 - Math.floor(baseOdds * 10);
+    const successRate = Math.floor(baseOdds * 100);
     const info = attrName 
       ? ` ≥${threshold}成功 | ${dc}次随机取${pickBest?'最大':'最小'}，因为做题家属性是（${attrName}）` 
       : `${successRate}%成功率 | 掷出≥${threshold}即可通过`;
@@ -147,11 +161,12 @@ export class UI {
         <div class="status">
           <span>📍 ${state.isEB5?'EB-5': state.inWaiting?`排期${state.waitingYear+1}/${state.waitingTotal}`: `${state.stageIndex+1}/${this.game.totalStages}`}</span>
           <span>🎂 ${this.game.currentAge}岁</span>
-          <span>${ABILITY_LEVELS[state.character.ability].name}</span>
+          <span>${EDUCATION_LEVELS[state.character.education].name}</span>
+          ${s.id.startsWith('h1b_lottery') ? `<span>第${state.h1bAttempts+1}抽</span>` : ''}
         </div>
       </div>
       <div class="card">
-        <div class="stage-title">${s.title}</div><p class="desc">${s.desc}</p>
+        <div class="stage-title">${s.title}${s.id.startsWith('h1b_lottery') && state.h1bAttempts >= 3 ? ` (总第${state.h1bAttempts+1}次)` : ''}</div><p class="desc">${s.desc}</p>
         <div class="odds">🎲 ${info}</div>
         <div class="dice-box">${this.renderDice(s, dc)}</div>
         ${this.renderActions(s)}
@@ -161,7 +176,11 @@ export class UI {
 
   renderDice(s, dc) {
     const { state } = this.game;
-    const threshold = 10 - Math.floor(s.baseOdds * 10);
+    let baseOdds = s.baseOdds;
+    if (s.id.startsWith('h1b_lottery')) {
+      baseOdds = this.game.h1bOdds;
+    }
+    const threshold = 10 - Math.floor(baseOdds * 10);
     
     if (state.diceValues.length) {
       return state.diceValues.map((v, i) => {
@@ -175,7 +194,13 @@ export class UI {
 
   renderActions(s) {
     const { state } = this.game;
-    if (state.showEB5 && !state.lastResult) return `<div class="result fail">${s.failMsg}</div><p class="gold" style="text-align:center;margin:15px 0">💰 家里有矿，要走EB-5吗？</p><button class="btn btn-eb5" id="eb5">💎 启动EB-5 (投资80万刀)</button><button class="btn btn-gray" id="next">😢 算了，认命</button>`;
+    if ((state.showEB5 || state.showMaster) && !state.lastResult) {
+      let btns = `<div class="result fail">${s.failMsg}</div>`;
+      if (state.showMaster) btns += `<button class="btn btn-roll" id="master">📚 读硕士 (+2年，重新抽签)</button>`;
+      if (state.showEB5) btns += `<button class="btn btn-eb5" id="eb5">💎 EB-5投资移民 (80万刀)</button>`;
+      btns += `<button class="btn btn-gray" id="next">😢 算了，认命</button>`;
+      return btns;
+    }
     if (state.lastResult !== undefined) return `<div class="result ${state.lastResult?'ok':'fail'}">${state.lastResult?s.successMsg:s.failMsg}</div><button class="btn btn-roll" id="next">${state.lastResult?'继续前进 →':'查看结果'}</button>`;
     if (state.inPeaceful) return `<button class="btn btn-roll" id="peaceful">😌 平安度过，继续等待</button>`;
     return `<button class="btn btn-roll" id="roll" ${this.rolling?'disabled':''}>🎲 掷骰子！</button>`;
@@ -185,6 +210,7 @@ export class UI {
     this.el.querySelector('#roll')?.addEventListener('click', () => this.rollDice());
     this.el.querySelector('#next')?.addEventListener('click', () => { this.game.advance(); this.render(); });
     this.el.querySelector('#eb5')?.addEventListener('click', () => { this.game.chooseEB5(); this.render(); });
+    this.el.querySelector('#master')?.addEventListener('click', () => { this.game.chooseMaster(); this.render(); });
     this.el.querySelector('#peaceful')?.addEventListener('click', () => { this.game.advancePeaceful(); this.render(); });
   }
 

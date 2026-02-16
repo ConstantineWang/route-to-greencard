@@ -1,5 +1,5 @@
 import { STAGES, EB5_STAGE, RANDOM_EVENTS, PEACEFUL_YEAR, FIND_JOB_60 } from '../data/stages.js';
-import { ENDINGS, ABILITY_LEVELS, MENTAL_LEVELS } from '../data/endings.js';
+import { ENDINGS, ABILITY_LEVELS, MENTAL_LEVELS, EDUCATION_LEVELS } from '../data/endings.js';
 
 export class Game {
   constructor() { this.reset(); }
@@ -36,13 +36,15 @@ export class Game {
     } catch (e) { console.log('Submit failed:', e); }
   }
 
-  setCharacter(wealth, ability, age, cheat = false, mental = 'normal') {
-    this.state.character = { wealth, ability, age, yearsSpent: 0, mental };
+  setCharacter(wealth, ability, age, cheat = false, mental = 'normal', education = 'master') {
+    this.state.character = { wealth, ability, age, yearsSpent: 0, mental, education };
     this.state.cheat = cheat;
     this.state.phase = 'playing';
   }
 
   get canEB5() { return this.state.character.wealth === 'rich' && !this.state.isEB5; }
+  get canMaster() { return this.state.character.education === 'bachelor' && !this.state.didMaster; }
+  get h1bOdds() { return EDUCATION_LEVELS[this.state.character.education].h1bOdds; }
   
   get currentStage() { 
     if (this.state.inPeaceful) return PEACEFUL_YEAR;
@@ -80,7 +82,13 @@ export class Game {
     }
 
     const diceValues = Array(count).fill(0).map(() => Math.floor(Math.random() * 10));
-    const threshold = 10 - Math.floor(stage.baseOdds * 10);
+    
+    // H-1B 抽签使用学历对应的概率
+    let baseOdds = stage.baseOdds;
+    if (stage.id.startsWith('h1b_lottery')) {
+      baseOdds = this.h1bOdds;
+    }
+    const threshold = 10 - Math.floor(baseOdds * 10);
     
     let chosenIndex = pickBest 
       ? diceValues.indexOf(Math.max(...diceValues))
@@ -108,12 +116,28 @@ export class Game {
     if (!success && this.canEB5 && !this.state.inEvent && !this.state.inPeaceful) {
       this.state.showEB5 = true;
     }
+    if (!success && this.canMaster && !this.state.inEvent && !this.state.inPeaceful) {
+      this.state.showMaster = true;
+    }
     return success;
+  }
+
+  chooseMaster() {
+    this.state.didMaster = true;
+    this.state.showMaster = false;
+    this.state.showEB5 = false;
+    this.state.character.education = 'master';
+    this.state.character.yearsSpent += 2;
+    this.state.stageIndex = 0; // 回到找工作
+    this.state.lastResult = undefined;
+    this.state.diceValues = [];
+    this.state.history.push({ stage: '📚 读硕士', success: true, short: '读硕士' });
   }
 
   chooseEB5() { 
     this.state.isEB5 = true; 
-    this.state.showEB5 = false; 
+    this.state.showEB5 = false;
+    this.state.showMaster = false;
     this.state.lastResult = undefined; 
     this.state.diceValues = []; 
     this.state.inEvent = null;
@@ -125,16 +149,17 @@ export class Game {
   // 随机选择事件或平安年
   rollRandomEvent() {
     const rand = Math.random();
-    if (rand < 0.15) return 'layoff';      // 15%裁员
-    if (rand < 0.25) return 'family';      // 10%家庭变故
-    if (rand < 0.33) return 'health';      // 8%健康危机
-    return 'peaceful';                      // 67%平安
+    if (rand < 0.30) return 'layoff';      // 30%裁员
+    if (rand < 0.40) return 'family';      // 10%家庭变故
+    if (rand < 0.48) return 'health';      // 8%健康危机
+    return 'peaceful';                      // 52%平安
   }
 
   advance() {
     const stage = this.currentStage;
     const success = this.state.lastResult;
     this.state.showEB5 = false;
+    this.state.showMaster = false;
 
     // 平安年结果
     if (this.state.inPeaceful) {
@@ -184,8 +209,13 @@ export class Game {
 
     // 正常阶段结果
     if (!success) {
-      if (stage.failEnding) { 
-        this.state.endingType = stage.failEnding; 
+      if (stage.failEnding) {
+        // 6次H1B未中特殊结局
+        if (stage.failEnding === 'h1b_failed' && this.state.h1bAttempts >= 6) {
+          this.state.endingType = 'h1b_failed_6';
+        } else {
+          this.state.endingType = stage.failEnding;
+        }
         this.state.phase = 'ended'; 
       } else {
         this.state.stageIndex++;

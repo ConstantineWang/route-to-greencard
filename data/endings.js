@@ -1,6 +1,7 @@
 export const ENDINGS = {
   opt_expired: { emoji: '📚', title: '学业结束', desc: '没找到sponsor工作，OPT到期后回国发展。', years: 1 },
-  h1b_failed: { emoji: '🎲', title: '抽签未中', desc: '连续三年H-1B未中签，STEM OPT到期。', years: 3 },
+  h1b_failed: { emoji: '🎲', title: '三抽未中', desc: '连续三年H-1B未中签，STEM OPT到期。', years: 3 },
+  h1b_failed_6: { emoji: '🎲', title: '六抽未中', desc: '本科三年+硕士三年，六次H-1B全部未中签...', years: 6 },
   h1b_denied: { emoji: '📋', title: 'H-1B被拒', desc: 'H-1B申请被拒绝，需要离境。', years: 1 },
   perm_failed: { emoji: '💼', title: 'PERM受阻', desc: '绿卡申请在PERM阶段受阻。', years: 2 },
   i140_denied: { emoji: '📄', title: 'I-140被拒', desc: 'I-140被拒，需要重新评估。', years: 3 },
@@ -38,4 +39,9 @@ export const MENTAL_LEVELS = {
 export const WEALTH_LEVELS = {
   rich: { name: '💎 富哥富姐 (家庭净资产>5000万)', canEB5: true },
   normal: { name: '🏠 普通家庭', canEB5: false }
+};
+
+export const EDUCATION_LEVELS = {
+  bachelor: { name: '🎓 本科', h1bOdds: 0.18 },
+  master: { name: '📚 硕士', h1bOdds: 0.27 }
 };
