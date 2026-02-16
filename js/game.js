@@ -112,7 +112,10 @@ export class Game {
     
     this.state.history.push({ stage: stage.title, success, short: stage.short });
     
-    if (stage.id.startsWith('h1b_lottery')) this.state.h1bAttempts++;
+    if (stage.id.startsWith('h1b_lottery')) {
+      this.state.h1bAttempts++;
+      if (this.state.didMaster) this.state.masterH1bAttempts++;
+    }
     if (!success && this.canEB5 && !this.state.inEvent && !this.state.inPeaceful) {
       this.state.showEB5 = true;
     }
@@ -128,6 +131,7 @@ export class Game {
     this.state.showEB5 = false;
     this.state.character.education = 'master';
     this.state.character.yearsSpent += 2;
+    this.state.masterH1bAttempts = 0; // 硕士阶段的抽签次数
     this.state.stageIndex = 0; // 回到找工作
     this.state.lastResult = undefined;
     this.state.diceValues = [];
@@ -284,7 +288,9 @@ export class Game {
   skipInvalid() {
     if (this.state.inEvent || this.state.inFindJob60 || this.state.inWaiting || this.state.inPeaceful) return;
     const s = this.currentStage;
-    if (s.id === 'h1b_lottery_2' && this.state.h1bAttempts === 0) { this.state.stageIndex++; this.skipInvalid(); }
-    if (s.id === 'h1b_lottery_3' && this.state.h1bAttempts <= 1) { this.state.stageIndex++; this.skipInvalid(); }
+    // 用当前学历的抽签次数判断
+    const currentAttempts = this.state.didMaster ? (this.state.masterH1bAttempts || 0) : this.state.h1bAttempts;
+    if (s.id === 'h1b_lottery_2' && currentAttempts === 0) { this.state.stageIndex++; this.skipInvalid(); }
+    if (s.id === 'h1b_lottery_3' && currentAttempts <= 1) { this.state.stageIndex++; this.skipInvalid(); }
   }
 }

@@ -141,7 +141,7 @@ export class UI {
     const threshold = 10 - Math.floor(baseOdds * 10);
     const successRate = Math.floor(baseOdds * 100);
     const info = attrName 
-      ? ` ≥${threshold}成功 | ${dc}次随机取${pickBest?'最大':'最小'}，因为做题家属性是（${attrName}）` 
+      ? ` ≥${threshold}成功 | ${dc}次随机取${pickBest?'最大':'最小'}，因为初始属性是（${attrName}）` 
       : `${successRate}%成功率 | 掷出≥${threshold}即可通过`;
 
     this.el.innerHTML = `
@@ -162,11 +162,11 @@ export class UI {
           <span>📍 ${state.isEB5?'EB-5': state.inWaiting?`排期${state.waitingYear+1}/${state.waitingTotal}`: `${state.stageIndex+1}/${this.game.totalStages}`}</span>
           <span>🎂 ${this.game.currentAge}岁</span>
           <span>${EDUCATION_LEVELS[state.character.education].name}</span>
-          ${s.id.startsWith('h1b_lottery') ? `<span>第${state.h1bAttempts+1}抽</span>` : ''}
+          ${s.id.startsWith('h1b_lottery') && state.h1bAttempts >= 3 ? `<span>总第${state.h1bAttempts+1}抽</span>` : ''}
         </div>
       </div>
       <div class="card">
-        <div class="stage-title">${s.title}${s.id.startsWith('h1b_lottery') && state.h1bAttempts >= 3 ? ` (总第${state.h1bAttempts+1}次)` : ''}</div><p class="desc">${s.desc}</p>
+        <div class="stage-title">${s.title}</div><p class="desc">${s.desc}</p>
         <div class="odds">🎲 ${info}</div>
         <div class="dice-box">${this.renderDice(s, dc)}</div>
         ${this.renderActions(s)}
