@@ -18,7 +18,8 @@ export default async function handler(req, res) {
     await redis.hincrby('stats', 'total', 1);
     await redis.hincrby('stats', `ending:${result.ending}`, 1);
     await redis.hincrbyfloat('stats', 'totalYears', result.yearsSpent || 0);
-    if (result.ending === 'success' || result.ending === 'success_eb5') {
+    // 开挂和EB5不算上岸
+    if (result.ending === 'success' && !result.cheat) {
       await redis.hincrby('stats', 'success', 1);
     }
     
