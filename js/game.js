@@ -155,8 +155,8 @@ export class Game {
     const rand = Math.random();
     if (rand < 0.30) return 'layoff';      // 30%裁员
     if (rand < 0.40) return 'family';      // 10%家庭变故
-    if (rand < 0.48) return 'health';      // 8%健康危机
-    return 'peaceful';                      // 52%平安
+    if (rand < 0.60) return 'health';      // 20%健康危机
+    return 'peaceful';                      // 40%平安
   }
 
   advance() {
