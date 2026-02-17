@@ -12,7 +12,10 @@ export class UI {
 
   renderSetup() {
     this.el.innerHTML = `
-      <div class="card"><div class="stage-title">👤 创建你的角色</div><p class="desc">选择属性，开始你的绿卡之路</p></div>
+      <div class="card" style="display:flex;justify-content:space-between;align-items:center">
+        <div><div class="stage-title">👤 创建你的角色</div><p class="desc" style="margin:0">选择属性，开始你的绿卡之路</p></div>
+        <button class="btn" id="random" style="width:auto;margin:0;padding:8px 16px">随机生成属性</button>
+      </div>
       <div class="card">
         <h3>🎓 学历</h3>
         <p class="desc" style="margin-bottom:10px;font-size:0.85em">本科H-1B中签率较低，但失败后可读硕士</p>
@@ -63,6 +66,15 @@ export class UI {
     const ageInput = this.el.querySelector('#age');
     this.el.querySelector('#age-down').onclick = () => { if (ageInput.value > 20) ageInput.value--; };
     this.el.querySelector('#age-up').onclick = () => { if (ageInput.value < 35) ageInput.value++; };
+    this.el.querySelector('#random').onclick = () => {
+      const pick = obj => Object.keys(obj)[Math.floor(Math.random() * Object.keys(obj).length)];
+      this.el.querySelector(`input[name="e"][value="${pick(EDUCATION_LEVELS)}"]`).checked = true;
+      this.el.querySelector(`input[name="w"][value="${pick(WEALTH_LEVELS)}"]`).checked = true;
+      this.el.querySelector(`input[name="a"][value="${pick(ABILITY_LEVELS)}"]`).checked = true;
+      this.el.querySelector(`input[name="m"][value="${pick(MENTAL_LEVELS)}"]`).checked = true;
+      ageInput.value = 20 + Math.floor(Math.random() * 10);
+      check();
+    };
     btn.onclick = () => {
       const age = parseInt(this.el.querySelector('#age').value) || 22;
       const cheat = this.el.querySelector('#cheat').checked;
