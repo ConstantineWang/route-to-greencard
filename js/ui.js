@@ -108,8 +108,46 @@ export class UI {
         <p class="gold">📅 ${yearsSpent}年 | 🎂 ${state.character.age}岁 → ${finalAge}岁</p>
         ${ageComment ? `<p style="margin-top:15px;color:${finalAge<30?'#4caf50':'#f5576c'}">${ageComment}</p>` : ''}
         <button class="btn btn-restart" id="re">🔄 重生</button>
+      </div>
+      <div class="card" id="stats-card">
+        <h4 style="margin-bottom:10px">📊 全球统计</h4>
+        <div id="stats-content">加载中...</div>
       </div>`;
     this.el.querySelector('#re').onclick = () => { this.game.reset(); this.render(); };
+    this.loadStats(state.endingType);
+  }
+
+  async loadStats(currentEnding) {
+    try {
+      const res = await fetch('/api/results');
+      const data = await res.json();
+      const total = data.total || 0;
+      const successRate = total ? ((data.success / total) * 100).toFixed(1) : 0;
+      
+      const sorted = Object.entries(data.endings || {}).sort((a,b) => b[1] - a[1]);
+      
+      document.getElementById('stats-content').innerHTML = `
+        <div style="display:flex;justify-content:space-around;margin-bottom:15px;font-size:0.9em">
+          <span>🎮 ${total}次</span>
+          <span>🎉 ${successRate}%上岸</span>
+          <span>📅 平均${data.avgYears}年</span>
+        </div>
+        <div class="endings-list">
+          ${sorted.map(([k, v]) => {
+            const ending = this.game.getEnding(k);
+            if (!ending) return '';
+            const pct = ((v / total) * 100).toFixed(1);
+            const isCurrent = k === currentEnding;
+            return `<div class="ending-row ${isCurrent ? 'current' : ''}">
+              <span>${ending.emoji} ${ending.title}</span>
+              <span>${pct}%</span>
+            </div>
+            <div class="ending-bar"><div class="ending-fill ${isCurrent ? 'current' : ''}" style="width:${pct}%"></div></div>`;
+          }).join('')}
+        </div>`;
+    } catch (e) {
+      document.getElementById('stats-content').innerHTML = '暂无数据';
+    }
   }
 
   renderStage() {
