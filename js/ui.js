@@ -13,8 +13,8 @@ export class UI {
   renderSetup() {
     this.el.innerHTML = `
       <div class="card" style="display:flex;justify-content:space-between;align-items:center">
-        <div><div class="stage-title">👤 创建你的角色</div><p class="desc" style="margin:0">选择属性，开始你的绿卡之路</p></div>
-        <button class="btn" id="random" style="width:auto;margin:0;padding:8px 16px">随机生成属性</button>
+        <div><div class="stage-title">👤 创建角色</div><p class="desc" style="margin:0">我要拿回本该属于我的一切</p></div>
+        <button class="btn" id="random" style="width:auto;margin:0;padding:8px 16px">随机生成</button>
       </div>
       <div class="card">
         <h3>🎓 学历</h3>
